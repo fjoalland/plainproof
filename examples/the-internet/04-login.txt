@@ -1,0 +1,4 @@
+# Logging in and out with the demo account the login page gives.
+I open the login page and note the username and the password it tells me to use.
+I log in with them: I reach the secure area, and a message says I logged in.
+I log out: a message says I logged out.

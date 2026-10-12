@@ -1,0 +1,43 @@
+# plainproof in GitLab CI, for any web application.
+#
+# In the application's repository:
+#   e2e/context.md      written once by the team (docs/project-context.md)
+#   e2e/*.txt           one business scenario per file, run in path order
+#
+# Settings > CI/CD > Variables (masked):
+#   ANTHROPIC_API_KEY             or the key of another provider (see `plainproof providers`)
+#   APP_USER, APP_PASSWORD        the test account named in context.md (any names)
+#
+# The report contains screenshots of the application: in Settings > General > Visibility, set
+# "Pages" to "Only project members" before enabling the pages job.
+
+stages: [test, deploy]
+
+plainproof:
+  stage: test
+  image: python:3.12
+  variables:
+    APP_URL: "https://staging.example.com/"     # the instance under test
+    PLAINPROOF_LABEL: "staging"                  # shown in the report's header
+  script:
+    # pin the version: an engine update must not change your verdicts without you noticing
+    - pip install --quiet "plainproof==0.1.0"
+    - playwright install --with-deps chromium
+    - plainproof run e2e --url "$APP_URL" --out e2e-report
+  allow_failure: true            # remove once the suite is stable
+  artifacts:
+    when: always
+    expose_as: "plainproof report"
+    paths: [e2e-report/]
+    reports:
+      junit: e2e-report/junit.xml    # the merge request's test tab
+    expire_in: 7 days
+
+pages:
+  stage: deploy
+  needs: [plainproof]
+  when: always                   # publish failing runs too
+  script:
+    - mkdir -p public && cp -r e2e-report/. public/
+  artifacts:
+    paths: [public]

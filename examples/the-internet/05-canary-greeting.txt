@@ -1,0 +1,5 @@
+# expect: failure
+# A canary: the site never greets the user by name, so this scenario must fail.
+# If it passes, the verdicts can no longer be trusted: the suite then fails.
+I log in on the login page with the demo account it gives.
+I see a message welcoming me by my first name, "Welcome back, Tom".

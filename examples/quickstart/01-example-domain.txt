@@ -1,0 +1,4 @@
+# The smallest scenario. One inline sentence works too:
+#   plainproof run "Open https://example.com and check that the page says Example Domain"
+Open https://example.com.
+Check that the page says "Example Domain".

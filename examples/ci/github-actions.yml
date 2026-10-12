@@ -1,0 +1,51 @@
+# plainproof in GitHub Actions: copy to .github/workflows/e2e.yml in your application's repository.
+#
+#   e2e/context.md     written once by the team (docs/project-context.md)
+#   e2e/*.txt          one business scenario per file
+#   e2e/recordings/    written by plainproof when scenarios pass (commit them)
+#
+# Secrets (Settings > Secrets and variables > Actions): ANTHROPIC_API_KEY (or another provider's key),
+# APP_USER and APP_PASSWORD (the test account named in context.md).
+# The report shows what the test account sees: keep the artifact private.
+
+name: e2e
+
+on:
+  pull_request:            # every change: replay the recordings, no model, no cost
+  schedule:
+    - cron: "0 4 * * *"    # every night: run with a model, refresh the recordings
+  workflow_dispatch:
+
+jobs:
+  plainproof:
+    runs-on: ubuntu-latest
+    env:
+      APP_URL: https://staging.example.com
+      APP_USER: ${{ secrets.APP_USER }}
+      APP_PASSWORD: ${{ secrets.APP_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install plainproof and Chromium
+        run: |
+          pip install "plainproof==0.1.0"     # pin it: an engine update should not change verdicts silently
+          playwright install --with-deps chromium
+
+      - name: Replay without a model
+        if: github.event_name == 'pull_request'
+        run: plainproof replay e2e --url "$APP_URL" --out e2e-report --label "PR #${{ github.event.number }}"
+
+      - name: Run with a model
+        if: github.event_name != 'pull_request'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: plainproof run e2e --url "$APP_URL" --out e2e-report --label "nightly ${{ github.sha }}"
+
+      - name: Keep the report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-report
+          path: e2e-report

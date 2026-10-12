@@ -1,0 +1,5 @@
+# A disabled field can be enabled then filled, and a checkbox can be removed.
+In the dynamic controls, I enable the text field: a message confirms it is enabled.
+I write "hello" in it, the field contains hello.
+Then I remove the checkbox.
+I am told it is gone.

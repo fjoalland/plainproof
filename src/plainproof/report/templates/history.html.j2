@@ -1,0 +1,83 @@
+{% extends "base.html.j2" %}
+{% block style %}
+:root { --t0: #e6eefc; --t1: #f1e8fd; --t2: #e3f5f1; --t3: #fdf0e3; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --t0: #1d2b40; --t1: #2e2140; --t2: #173431; --t3: #3a2a19; } }
+:root[data-theme="dark"] { --t0: #1d2b40; --t1: #2e2140; --t2: #173431; --t3: #3a2a19; }
+.t0 { background: var(--t0); } .t1 { background: var(--t1); } .t2 { background: var(--t2); } .t3 { background: var(--t3); }
+.table-card { overflow-x: auto; margin-bottom: .5rem; }
+table { border-collapse: collapse; width: 100%; font-size: .87rem; }
+th, td { padding: .5rem .7rem; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+thead th { font-size: .74rem; color: var(--muted); font-weight: 650; white-space: nowrap; }
+tbody tr:last-child td, tbody tr:last-child th { border-bottom: 0; }
+th.scenario-name { font-weight: 550; white-space: nowrap; position: sticky; left: 0; background: var(--surface); }
+th.col { text-align: center; }
+td.cell { text-align: center; padding: .35rem; }
+td.cell a { display: inline-block; width: 1.7rem; line-height: 1.7rem; border-radius: 6px; font-weight: 700; text-decoration: none; }
+td.ok a, td.ok-expected a { background: var(--ok-soft); color: var(--ok); }
+td.ko a { background: var(--ko-soft); color: var(--ko); }
+td.ko-expected a { background: var(--warn-soft); color: var(--warn); }
+td.none { color: var(--muted); text-align: center; }
+.num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.tint { display: inline-block; padding: .1rem .5rem; border-radius: 6px; font-size: .8rem; margin: .1rem .3rem .1rem 0; }
+.flag { display: inline-block; font-size: .7rem; padding: .05rem .4rem; border-radius: 999px; margin-left: .3rem; background: var(--warn-soft); color: var(--warn); }
+.progress { height: 4px; width: 90px; border-radius: 2px; background: var(--ko-soft); margin-top: .3rem; }
+.progress span { display: block; height: 100%; border-radius: 2px; background: var(--ok); }
+.legend { color: var(--muted); font-size: .82rem; margin: .5rem 0 0; }
+.sub { color: var(--muted); font-size: .78rem; }
+{% endblock %}
+{% block main %}
+<div class="page-head">
+  <div>
+    <h1>{{ title }}</h1>
+    <p class="lead">{{ lead }}</p>
+  </div>
+</div>
+
+<div class="section-head"><h2>{{ t("history.compare") }}</h2></div>
+<div class="card table-card">
+  <table>
+    <thead><tr><th>{{ t("history.scenario") }}</th>
+      {% for col in columns %}<th class="col t{{ col.tint }}" title="{{ col.label }} · {{ col.model }}">{{ col.day }}<div class="sub">{{ col.time }}</div></th>{% endfor %}
+    </tr></thead>
+    <tbody>
+      {% for row in matrix %}
+      <tr>
+        <th class="scenario-name" title="{{ row.text }}">{{ row.name }}{% if row.expected %}<span class="flag">{{ t("history.expected") }}</span>{% endif %}</th>
+        {% for cell in row.cells %}
+        {% if cell %}<td class="cell {{ cell.verdict }}"><a href="{{ cell.href }}" title="{{ cell.title }}">{{ cell.symbol }}</a></td>
+        {% else %}<td class="cell none">·</td>{% endif %}
+        {% endfor %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+<p class="legend">{{ t("history.legend") }} {% for label in labels %}<span class="tint t{{ loop.index0 % 4 }}">{{ label }}</span>{% endfor %}</p>
+
+<div class="section-head"><h2>{{ t("history.campaigns") }}</h2></div>
+<div class="card table-card">
+  <table>
+    <thead><tr>
+      <th>{{ t("history.col_date") }}</th><th>{{ t("history.col_label") }}</th><th>{{ t("history.col_model") }}</th>
+      <th>{{ t("history.col_conform") }}</th><th>{{ t("history.col_not_conform") }}</th>
+      <th class="num">{{ t("history.col_cost") }}</th><th class="num">{{ t("history.col_duration") }}</th>
+      <th class="num">{{ t("history.col_size") }}</th><th>{{ t("history.col_code") }}</th><th></th>
+    </tr></thead>
+    <tbody>
+      {% for c in campaigns %}
+      <tr>
+        <td style="white-space: nowrap">{{ c.date }}{% if c.pinned %}<span class="flag">{{ t("history.pinned") }}</span>{% endif %}{% if c.lightened %}<span class="flag">{{ t("history.lightened") }}</span>{% endif %}{% if c.note %}<div class="sub">{{ c.note }}</div>{% endif %}</td>
+        <td><span class="tint t{{ c.tint }}">{{ c.label }}</span></td>
+        <td>{{ c.model }}<div class="sub">{{ c.mode }}</div></td>
+        <td style="white-space: nowrap"><b>{{ c.conforming }} / {{ c.total }}</b><div class="progress"><span style="width: {{ c.percent }}%"></span></div></td>
+        <td class="sub" style="color: var(--ko)">{{ c.non_conforming or "—" }}</td>
+        <td class="num">{{ c.cost }}</td><td class="num">{{ c.duration }}</td><td class="num">{{ c.size }}</td>
+        <td class="sub">{{ c.version }}<br>{{ c.branch }} {{ c.commit }}</td>
+        <td><a href="{{ c.href }}">{{ t("history.report") }}</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+<p class="legend">{{ t("history.foot") }}</p>
+{% endblock %}

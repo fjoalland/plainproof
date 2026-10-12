@@ -1,0 +1,23 @@
+{% macro icon(name) -%}
+<svg class="i" aria-hidden="true"><use href="#i-{{ name }}"/></svg>
+{%- endmacro %}
+
+{% macro badge(css, label) -%}
+<span class="badge {{ css }}">{{ icon("check" if css == "ok" else "x") }}{{ label }}</span>
+{%- endmacro %}
+
+{% macro verdict(v) -%}
+<section class="alert {{ 'ok' if v.ok else 'ko' }}">
+  {{ icon("check" if v.ok else "x") }}
+  <div>
+    <p><strong>{{ v.title }}{{ t("punct.colon") }}</strong> {{ v.reason }}</p>
+    {% if v.diagnosis %}
+    <p class="cause">{{ t("ui.cause") }}{{ t("punct.colon") }} <b>{{ t("cause." ~ v.diagnosis.cause) }}</b></p>
+    <p><strong>{{ t("ui.explanation") }}{{ t("punct.colon") }}</strong> {{ v.diagnosis.summary }}</p>
+    {% endif %}
+    {% if v.technical %}
+    <details class="tech"><summary>{{ t("ui.technical") }}</summary><pre>{{ v.technical }}</pre></details>
+    {% endif %}
+  </div>
+</section>
+{%- endmacro %}

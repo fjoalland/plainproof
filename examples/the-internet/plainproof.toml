@@ -1,0 +1,3 @@
+# Settings of this example: the page opened before each scenario.
+url = "https://the-internet.herokuapp.com/"
+max-steps = 25

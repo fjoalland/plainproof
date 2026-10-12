@@ -1,0 +1,4 @@
+# An example: replace it with what your users really do.
+# Lines starting with # are notes for humans; this first block becomes the description in reports.
+I open my orders.
+I should see the list of my orders, with a "New order" button.

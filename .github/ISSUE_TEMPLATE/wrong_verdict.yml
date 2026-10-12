@@ -1,0 +1,35 @@
+name: Wrong verdict
+description: A scenario passed while it should have failed, or the reverse
+labels: [verdict]
+body:
+  - type: markdown
+    attributes:
+      value: The most valuable report there is — it usually becomes a new guard. Thank you!
+  - type: textarea
+    id: scenario
+    attributes:
+      label: The scenario
+      render: text
+    validations:
+      required: true
+  - type: dropdown
+    id: direction
+    attributes:
+      label: The verdict was
+      options:
+        - PASSED, but the application was wrong (false success)
+        - FAILED, but the application was right (false failure)
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: What the page really showed, and the relevant part of report.json
+      render: json
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: plainproof version and model
+      placeholder: 0.1.0, openai:gpt-6.1-sol

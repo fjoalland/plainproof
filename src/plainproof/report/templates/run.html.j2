@@ -1,0 +1,124 @@
+{% extends "base.html.j2" %}
+{% from "_macros.html.j2" import icon, badge, verdict %}
+{% block main %}
+<div class="crumbs">
+  <a href="{{ root }}index.html">{{ icon("arrow-left") }}{{ t("ui.suite_results") }}</a>
+  {% if position %}<span class="muted">{{ t("ui.position", k=position[0], n=position[1]) }}</span>{% endif %}
+</div>
+<div class="page-head">
+  <div>
+    <h1>{{ name }} {{ badge(css, status_label) }}</h1>
+    {% if description %}<p class="lead">{{ description }}</p>{% endif %}
+    {% if expected_failure %}<p class="note">{{ t("ui.expected_failure_note") }}</p>{% endif %}
+  </div>
+  <div class="row">
+    {% if previous %}<a class="btn" href="{{ previous.href }}" title="{{ t('ui.previous') }}">{{ icon("chevron-left") }}{{ previous.name }}</a>{% endif %}
+    {% if following %}<a class="btn" href="{{ following.href }}" title="{{ t('ui.next') }}">{{ following.name }}{{ icon("chevron-right") }}</a>{% endif %}
+  </div>
+</div>
+
+<div class="hero">
+  <div class="stack">
+    <section class="card pad">
+      <h2 class="label">{{ t("ui.scenario") }}</h2>
+      <pre class="scenario">{{ source }}</pre>
+    </section>
+    {% if plan %}
+    <details class="card pad plan">
+      <summary class="label">{{ t("ui.plan") }} {{ icon("chevron-down") }}</summary>
+      <ol>
+        {% for step in plan %}
+        <li><span class="n">{{ loop.index }}</span><span class="txt">{{ step.text }}</span>{% if step.verify %}<span class="tag">{{ t("ui.plan_verify") }}</span>{% endif %}<span class="src">{{ step.origin }}</span></li>
+        {% endfor %}
+      </ol>
+    </details>
+    {% endif %}
+    {{ verdict(outcome) }}
+  </div>
+  <section class="card pad panel">
+    <h2 class="label">{{ t("ui.run") }}</h2>
+    <dl>
+      {% for key, value in panel %}<dt>{{ key }}</dt><dd>{{ value }}</dd>{% endfor %}
+    </dl>
+  </section>
+</div>
+
+{% if video %}
+<section class="card video" style="margin-top: 1rem">
+  <div class="card-head">
+    <h2>{{ icon("video") }}{{ t("ui.video") }}</h2>
+    <span class="speed">{{ t("ui.speed") }}
+      {% for rate in (1, 2, 4, 8) %}<button type="button" data-rate="{{ rate }}"{% if rate == 1 %} class="on"{% endif %}>×{{ rate }}</button>{% endfor %}
+    </span>
+  </div>
+  <video src="video.webm" controls preload="metadata"{% if final %} poster="final.png"{% endif %}></video>
+</section>
+{% endif %}
+
+<div class="section-head">
+  <h2>{{ t("ui.actions") }}</h2>
+  {% if steps %}<button type="button" class="btn ghost" id="toggle-steps" data-expand="{{ t('ui.expand_all') }}" data-collapse="{{ t('ui.collapse_all') }}">{{ t("ui.expand_all") }}</button>{% endif %}
+</div>
+{% if steps %}
+<ol class="timeline">
+  {% for s in steps %}
+  <li class="tl {{ s.css }}">
+    <span class="dot">{{ icon(s.icon) }}</span>
+    <details class="step {{ s.css }}"{% if s.open %} open{% endif %}>
+      <summary>
+        <span class="num">{{ "%02d" % s.index }}</span>
+        <span class="chip"><b>{{ s.kind }}</b> {{ s.params }}</span>
+        <span class="res">{{ s.outcome }}</span>
+        <span class="dur">{{ s.duration }}</span>
+        <span class="chev">{{ icon("chevron-down") }}</span>
+      </summary>
+      <div class="step-body">
+        <figure>
+          <figcaption>{{ t("ui.action_caption") }} <span>— {{ t("ui.action_caption_sub") }}</span></figcaption>
+          {% if s.action_image %}<a href="{{ s.action_image }}" target="_blank" rel="noopener"><img src="{{ s.action_image }}" alt="{{ t('ui.action_caption') }}" loading="lazy"></a>{% else %}<p class="muted">—</p>{% endif %}
+        </figure>
+        <figure>
+          <figcaption>{{ t("ui.input_caption") }} <span>— {{ t("ui.input_caption_sub") }}</span></figcaption>
+          {% if s.input_image %}<a href="{{ s.input_image }}" target="_blank" rel="noopener"><img src="{{ s.input_image }}" alt="{{ t('ui.input_caption') }}" loading="lazy"></a>{% else %}<p class="muted">—</p>{% endif %}
+        </figure>
+        <dl class="facts">
+          <dt>{{ t("ui.page_before") }}</dt><dd class="mono">{{ s.url }}</dd>
+          {% if s.url_after %}<dt>{{ t("ui.page_after") }}</dt><dd class="mono">{{ s.url_after }}</dd>{% endif %}
+          {% if s.thought %}<dt>{{ t("ui.thought") }}</dt><dd><em>{{ s.thought }}</em></dd>{% endif %}
+          <dt>{{ t("ui.result") }}</dt><dd>{{ s.outcome }}</dd>
+        </dl>
+      </div>
+    </details>
+  </li>
+  {% endfor %}
+</ol>
+{% else %}
+<p class="muted">{{ t("ui.no_steps") }}</p>
+{% endif %}
+
+{% if final %}
+<section class="card final" id="final">
+  <div class="card-head"><h2>{{ icon("image") }}{{ t("ui.final_state") }}</h2><span class="mono muted">{{ last_url }}</span></div>
+  <a href="final.png" target="_blank" rel="noopener"><img src="final.png" alt="{{ t('ui.final_state') }}" loading="lazy"></a>
+</section>
+{% endif %}
+{% endblock %}
+
+{% block script %}
+(function () {
+  var toggle = document.getElementById("toggle-steps");
+  if (toggle) toggle.addEventListener("click", function () {
+    var steps = document.querySelectorAll("details.step");
+    var open = Array.prototype.some.call(steps, function (s) { return !s.open; });
+    steps.forEach(function (s) { s.open = open; });
+    toggle.textContent = open ? toggle.dataset.collapse : toggle.dataset.expand;
+  });
+  document.querySelectorAll(".speed button").forEach(function (button) {
+    button.addEventListener("click", function () {
+      var video = button.closest(".video").querySelector("video");
+      video.playbackRate = Number(button.dataset.rate);
+      button.parentNode.querySelectorAll("button").forEach(function (b) { b.classList.toggle("on", b === button); });
+    });
+  });
+})();
+{% endblock %}

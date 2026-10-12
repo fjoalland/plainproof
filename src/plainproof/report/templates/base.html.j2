@@ -1,0 +1,51 @@
+{% from "_macros.html.j2" import icon %}
+<!doctype html>
+<html lang="{{ lang }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="generator" content="plainproof {{ version }}">
+<title>{{ title }}</title>
+<style>
+{% include "_style.css" %}
+{% block style %}{% endblock %}
+</style>
+</head>
+<body>
+{% include "_icons.svg" %}
+<header class="topbar">
+  <a class="brand" href="{{ root }}index.html">{{ icon("logo") }}<span>plainproof</span></a>
+  <div class="topbar-meta">
+    {% if label %}<span class="pill">{{ label }}</span>{% endif %}
+    {% if day %}<span>{{ t("ui.run_of", day=day) }}{% if time %} · {{ time }}{% endif %}</span>{% endif %}
+    {% if model %}<span class="mono">{{ model }}</span>{% endif %}
+  </div>
+</header>
+<div class="layout{% if not nav %} no-nav{% endif %}">
+  {% if nav %}
+  <aside class="sidebar" aria-label="{{ t('ui.scenarios') }}">
+    <h2>{{ t("ui.overview") }}</h2>
+    <a href="{{ root }}index.html"{% if page == "index" %} class="current"{% endif %}>{{ icon("grid") }}<span class="name">{{ t("ui.suite_results") }}</span></a>
+    <h2>{{ t("ui.scenarios") }}</h2>
+    {% for item in nav %}
+    <a href="{{ item.href }}" class="{{ item.css }}{% if item.current %} current{% endif %}">
+      <span style="color: var(--tone)">{{ icon("check" if item.css == "ok" else "x") }}</span>
+      <span class="name">{{ item.name }}</span><span class="dur">{{ item.duration }}</span>
+    </a>
+    {% endfor %}
+    {% if files %}
+    <h2>{{ t("ui.files") }}</h2>
+    {% for href, name, kind in files %}<a href="{{ href }}">{{ icon(kind) }}<span class="name">{{ name }}</span></a>{% endfor %}
+    {% endif %}
+  </aside>
+  {% endif %}
+  <main>
+{% block main %}{% endblock %}
+  </main>
+</div>
+<footer class="foot">{{ t("ui.generated_by", version=version) }}</footer>
+<script>
+{% block script %}{% endblock %}
+</script>
+</body>
+</html>

@@ -1,0 +1,72 @@
+{% extends "base.html.j2" %}
+{% from "_macros.html.j2" import icon, badge, verdict %}
+{% block main %}
+<div class="page-head">
+  <div>
+    <h1>{{ t("ui.suite_results") }} {{ badge(suite_css, suite_label) }}</h1>
+    <p class="lead">{{ intro }}{% if source %} · <span class="mono">{{ source }}</span>{% endif %}</p>
+  </div>
+  <div class="row">
+    <a class="btn" href="junit.xml">{{ icon("file") }}junit.xml</a>
+    <a class="btn" href="summary.json">{{ icon("code") }}summary.json</a>
+  </div>
+</div>
+
+<div class="stats">
+  {% for value, caption, tone in stats %}
+  <div class="card stat"><div class="n {{ tone }}">{{ value }}</div><small>{{ caption }}</small></div>
+  {% endfor %}
+</div>
+
+<div class="filters" role="group" aria-label="Filter">
+  <button type="button" class="btn on" data-filter="all">{{ t("ui.filter_all") }} · {{ total }}</button>
+  <button type="button" class="btn" data-filter="ko">{{ icon("x") }}{{ t("ui.filter_failed") }} · {{ failed }}</button>
+  <button type="button" class="btn" data-filter="ok">{{ icon("check") }}{{ t("ui.filter_passed") }} · {{ passed }}</button>
+</div>
+
+<div class="cards" id="cards" data-filter="all">
+  {% for c in cards %}
+  <article class="card scenario-card {{ c.css }}" id="{{ c.name }}">
+    <header class="card-head">
+      <span class="status-dot {{ c.css }}">{{ icon("check" if c.css == "ok" else "x") }}</span>
+      <h2><a href="{{ c.href }}">{{ c.name }}</a></h2>
+      {{ badge(c.css, c.status_label) }}
+      <span class="meta">
+        <span>{{ icon("list") }}{{ c.actions }} {{ t("ui.actions_unit") }}</span>
+        <span>{{ icon("clock") }}{{ c.duration }}</span>
+        <span title="{{ t('ui.cost') }}">{{ icon("coin") }}{{ c.cost }}</span>
+      </span>
+    </header>
+    <div class="card-body">
+      <div class="stack">
+        {% if c.description %}<p class="lead" style="margin: 0">{{ c.description }}</p>{% endif %}
+        <pre class="scenario">{{ c.source }}</pre>
+        {{ verdict(c.outcome) }}
+        <div class="row">
+          <a class="btn primary" href="{{ c.href }}">{{ icon("list") }}{{ t("ui.step_report") }}</a>
+          {% if c.final %}<a class="btn ghost" href="{{ c.final }}" target="_blank" rel="noopener">{{ icon("image") }}{{ t("ui.final_screenshot") }}</a>{% endif %}
+        </div>
+      </div>
+      <div class="media">
+        {% if c.video %}<video src="{{ c.video }}" controls preload="none"{% if c.final %} poster="{{ c.final }}"{% endif %}></video>
+        {% elif c.final %}<a href="{{ c.href }}"><img src="{{ c.final }}" alt="{{ t('ui.final_state') }}" loading="lazy"></a>
+        {% else %}<span class="empty">{{ icon("image") }}</span>{% endif %}
+      </div>
+    </div>
+  </article>
+  {% endfor %}
+</div>
+{% endblock %}
+
+{% block script %}
+(function () {
+  var cards = document.getElementById("cards");
+  document.querySelectorAll("[data-filter]").forEach(function (button) {
+    if (button === cards) return;
+    button.addEventListener("click", function () {
+      cards.dataset.filter = button.dataset.filter;
+      button.parentNode.querySelectorAll("button").forEach(function (b) { b.classList.toggle("on", b === button); });
+    });
+  });
+})();
+{% endblock %}

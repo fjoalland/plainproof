@@ -1,0 +1,4 @@
+# Checkboxes keep the state they are given.
+I open the checkboxes.
+I tick the first box and untick the second one.
+The first one must be ticked and the second one not.
